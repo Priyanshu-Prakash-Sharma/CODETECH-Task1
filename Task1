@@ -1,0 +1,210 @@
+/*BMI Calculator android app*/
+
+package com.example.bmicalculator
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            var showSplashScreen by remember { mutableStateOf(true) }
+
+            LaunchedEffect(key1 = true) {
+                delay(3000)
+                showSplashScreen = false
+            }
+
+            if (showSplashScreen) {
+                SplashScreen()
+            } else {
+                BmiCalculatorApp()
+            }
+        }
+    }
+}
+
+@Composable
+fun SplashScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.drawable.bmi), // Replace with your drawable name
+                contentDescription = "App Icon",
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "BMI Calculator",
+                color = Color.White,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize
+            )
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BmiCalculatorApp() {
+    var isMetric by remember { mutableStateOf(true) }
+    var weightInput by remember { mutableStateOf("") }
+    var heightInput by remember { mutableStateOf("") }
+    var heightFeetInput by remember { mutableStateOf("") }
+    var heightInchesInput by remember { mutableStateOf("") }
+    var bmiResult by remember { mutableStateOf<Double?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        UnitSelection(isMetric) { isMetric = it }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (isMetric) {
+            OutlinedTextField(
+                value = weightInput,
+                onValueChange = { weightInput = it },
+                label = { Text("Weight (kg)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            OutlinedTextField(
+                value = heightInput,
+                onValueChange = { heightInput = it },
+                label = { Text("Height (cm)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        } else {
+            OutlinedTextField(
+                value = weightInput,
+                onValueChange = { weightInput = it },
+                label = { Text("Weight (lbs)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            Row {
+                OutlinedTextField(
+                    value = heightFeetInput,
+                    onValueChange = { heightFeetInput = it },
+                    label = { Text("Feet") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedTextField(
+                    value = heightInchesInput,
+                    onValueChange = { heightInchesInput = it },
+                    label = { Text("Inches") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            val weight = weightInput.toDoubleOrNull()
+            val height = heightInput.toDoubleOrNull()
+            if (weight != null && height != null) {
+                bmiResult =
+                    calculateBMI(weight, height, isMetric, heightFeetInput, heightInchesInput)
+            }
+        }) {
+            Text("Calculate BMI")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        if (bmiResult != null) {
+            Text("Your BMI : ${"%.2f".format(bmiResult)}")
+            val obesityLevel = getObesityLevel(bmiResult!!)
+            Text("Level : $obesityLevel") // Display obesity level
+        }
+    }
+}
+fun getObesityLevel(bmi: Double): String {
+    return when {
+        bmi < 18.5 -> "Underweight"
+        bmi in 18.5..24.9 -> "Normal weight"
+        bmi in 25.0..29.9 -> "Overweight"
+        bmi in 30.0..34.9 -> "Obese (Class I)"
+        bmi in 35.0..39.9 -> "Obese (Class II)"
+        else -> "Obese (Class III)"
+    }
+}
+@Composable
+fun UnitSelection(isMetric: Boolean, onUnitChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(
+            selected = isMetric,
+            onClick = { onUnitChange(true) }
+        )
+        Text(
+            text = "METRIC UNIT",
+            fontSize = 16.sp
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        RadioButton(
+            selected = !isMetric,
+            onClick = { onUnitChange(false) }
+        )
+        Text(
+            text = "IMPERIAL UNIT",
+            fontSize = 16.sp
+        )
+    }
+}
+
+fun calculateBMI(weight: Double, height: Double, isMetric: Boolean, heightFeet: String, heightInches: String): Double {
+    return if (isMetric) {
+        val heightInMeters = height / 100
+        weight / (heightInMeters * heightInMeters)
+    } else {
+        // Convert to metric and calculate
+        val weightKg = weight * 0.453592
+        val heightCm = (heightFeet.toDoubleOrNull() ?: 0.0) * 30.48 +
+                (heightInches.toDoubleOrNull() ?: 0.0) * 2.54
+        val heightInMeters = heightCm / 100
+        weightKg / (heightInMeters * heightInMeters)
+    }
+}
