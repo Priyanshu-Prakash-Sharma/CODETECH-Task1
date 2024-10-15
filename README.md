@@ -2,7 +2,10 @@
 **Company**: CODTECH IT SOLUTIONS                             
 **ID**: CT6WDS1818                               
 **Domain**: Android Development                              
-**Duration**: August to October 2024                           
+**Duration**: August to October 2024     
+
+**Preview of the BMI Calculator app**
+![Bmi_Calculator](https://github.com/user-attachments/assets/c8f33327-d35d-47c2-88d3-ae4722a5a75b)
 
 ## BMI Calculator App - Overview
 
